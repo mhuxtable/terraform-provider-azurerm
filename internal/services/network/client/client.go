@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-02-01/networkvirtualappliances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
@@ -84,6 +85,7 @@ type Client struct {
 	VnetGatewayClient                        *network.VirtualNetworkGatewaysClient
 	VnetClient                               *network.VirtualNetworksClient
 	VnetPeeringsClient                       *network.VirtualNetworkPeeringsClient
+	VirtualAppliancesClient                  *networkvirtualappliances.NetworkVirtualAppliancesClient
 	VirtualWanClient                         *network.VirtualWansClient
 	VirtualHubClient                         *network.VirtualHubsClient
 	VpnConnectionsClient                     *network.VpnConnectionsClient
@@ -327,6 +329,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	VnetGatewayNatRuleClient := network.NewVirtualNetworkGatewayNatRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayNatRuleClient.Client, o.ResourceManagerAuthorizer)
 
+	virtualAppliancesClient, err := networkvirtualappliances.NewNetworkVirtualAppliancesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building virtual appliances client: %+v", err)
+	}
+	o.Configure(virtualAppliancesClient.Client, o.Authorizers.ResourceManager)
+
 	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
 
@@ -410,6 +418,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VnetGatewayClient:                        &VnetGatewayClient,
 		VnetClient:                               &VnetClient,
 		VnetPeeringsClient:                       &VnetPeeringsClient,
+		VirtualAppliancesClient:                  virtualAppliancesClient,
 		VirtualWanClient:                         &VirtualWanClient,
 		VirtualHubClient:                         &VirtualHubClient,
 		VpnConnectionsClient:                     &vpnConnectionsClient,
